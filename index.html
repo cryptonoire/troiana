@@ -107,6 +107,25 @@
   .card h3{font-size:1.22rem;font-weight:700;letter-spacing:-.01em}
   .card p{color:var(--muted);margin-top:10px;font-size:.97rem}
 
+  /* work / portfolio */
+  .work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:900px){.work-grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:620px){.work-grid{grid-template-columns:1fr}}
+  .proj{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;background:var(--card);transition:border-color .25s,transform .25s}
+  .proj:hover{border-color:var(--line-strong);transform:translateY(-4px)}
+  .proj .thumb{aspect-ratio:16/10;display:grid;place-items:center;position:relative;
+    background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.10),transparent 55%),#060607;
+    border-bottom:1px solid var(--line)}
+  .proj .thumb .mono{font-weight:900;font-size:2.4rem;letter-spacing:-.04em;color:#fff;opacity:.92}
+  .proj .body{padding:22px 24px 24px}
+  .proj .tag{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2);font-weight:700}
+  .proj h3{font-size:1.18rem;font-weight:700;margin-top:9px;display:flex;align-items:center;gap:8px}
+  .proj h3 .arrow{transition:transform .2s;color:var(--muted)}
+  .proj:hover h3 .arrow{transform:translate(3px,-3px);color:#fff}
+  .proj p{color:var(--muted);margin-top:9px;font-size:.95rem}
+  .proj .url{margin-top:14px;color:var(--muted-2);font-size:13px}
+
   /* process */
   .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
   @media(max-width:900px){.steps{grid-template-columns:1fr 1fr}}
@@ -142,7 +161,8 @@
     <a class="logo" href="#"><span class="mark">T</span> Troiana</a>
     <nav class="links">
       <a href="#services">Services</a>
-      <a href="#work">Approach</a>
+      <a href="#work">Work</a>
+      <a href="#why">Approach</a>
       <a href="#process">Process</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -188,8 +208,48 @@
     </div>
   </section>
 
-  <!-- APPROACH -->
+  <!-- WORK -->
   <section id="work" class="pad">
+    <div class="wrap">
+      <div class="head reveal">
+        <span class="eyebrow">Selected work</span>
+        <h2>Projects we've shipped.</h2>
+        <p>A few of the products we've designed, built and launched.</p>
+      </div>
+      <div class="work-grid">
+        <a class="proj reveal" href="https://print-house.net" target="_blank" rel="noopener">
+          <div class="thumb"><span class="mono">PH</span></div>
+          <div class="body">
+            <span class="tag">Marketing · E-commerce</span>
+            <h3>PrintHouse <span class="arrow">↗</span></h3>
+            <p>Printing, signage and promotional company site with an online product catalogue.</p>
+            <div class="url">print-house.net</div>
+          </div>
+        </a>
+        <a class="proj reveal" href="https://zolea.fun" target="_blank" rel="noopener">
+          <div class="thumb"><span class="mono">Z</span></div>
+          <div class="body">
+            <span class="tag">Full-stack · Web app</span>
+            <h3>Zolea <span class="arrow">↗</span></h3>
+            <p>A community platform with live data cards, real-time chat, voice and in-app tools.</p>
+            <div class="url">zolea.fun</div>
+          </div>
+        </a>
+        <a class="proj reveal" href="#contact">
+          <div class="thumb"><span class="mono">W</span></div>
+          <div class="body">
+            <span class="tag">Product · UI/UX</span>
+            <h3>Whisper <span class="arrow">↗</span></h3>
+            <p>An attention-respecting messaging app concept built around calm, intentional communication.</p>
+            <div class="url">Case study on request</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPROACH -->
+  <section id="why" class="pad">
     <div class="wrap">
       <div class="head reveal">
         <span class="eyebrow">Why Troiana</span>
