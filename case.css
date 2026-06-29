@@ -64,7 +64,14 @@ section{position:relative;z-index:1}
 /* screenshots */
 .shot{width:100%;border:1px solid var(--line);border-radius:var(--radius);display:block;
   background:#060607;margin:0;aspect-ratio:16/10;object-fit:cover;object-position:top}
-.shot.hero-shot{margin-top:8px}
+.shot.hero-shot{margin-top:8px;aspect-ratio:16/9}
+.shot.page{aspect-ratio:4/5}
+a.shotlink{display:block;position:relative;overflow:hidden;border-radius:var(--radius);border:1px solid var(--line)}
+a.shotlink .shot{border:0;border-radius:0;transition:transform .5s ease}
+a.shotlink:hover .shot{transform:scale(1.03)}
+a.shotlink .open{position:absolute;top:12px;right:12px;font-size:12px;color:#fff;background:rgba(0,0,0,.55);
+  border:1px solid var(--line-strong);padding:5px 10px;border-radius:8px;opacity:0;transition:opacity .2s}
+a.shotlink:hover .open{opacity:1}
 .gallery{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}
 @media(max-width:720px){.gallery{grid-template-columns:1fr}}
 figure{margin:0}
