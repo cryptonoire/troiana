@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Catering Prishtina — Case Study | Troiana</title>
+<meta name="description" content="How Troiana built the website for Catering Prishtina — a catering and events brand in Prishtina, Kosovo." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="case.css" />
+</head>
+<body>
+<div class="bgfx"></div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="logo" href="index.html"><span class="mark">T</span> Troiana</a>
+    <nav class="links">
+      <a href="index.html#services">Services</a>
+      <a href="index.html#work">Work</a>
+      <a href="index.html#process">Process</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <a class="btn btn-primary" href="index.html#contact">Start a project →</a>
+  </div>
+</header>
+
+<main>
+  <section class="wrap"><a class="back" href="index.html#work">← All work</a></section>
+
+  <section class="cs-hero">
+    <div class="wrap">
+      <span class="cs-eyebrow">Case study · Hospitality &amp; catering</span>
+      <h1>Catering Prishtina</h1>
+      <p class="lead">An elegant website for a catering and events brand in Prishtina — presenting menus and occasions, and making it easy for guests to enquire and book.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://catering-prishtina.com" target="_blank" rel="noopener">Visit live site ↗</a>
+        <a class="btn btn-ghost" href="index.html#contact">Start your project</a>
+      </div>
+      <div class="meta">
+        <div class="cell"><div class="k">Client</div><div class="v">Catering Prishtina</div></div>
+        <div class="cell"><div class="k">Type</div><div class="v">Marketing website</div></div>
+        <div class="cell"><div class="k">Sector</div><div class="v">Catering &amp; events</div></div>
+        <div class="cell"><div class="k">Location</div><div class="v">Prishtina, Kosovo</div></div>
+        <div class="cell"><div class="k">Live</div><div class="v"><a href="https://catering-prishtina.com" target="_blank" rel="noopener">catering-prishtina.com</a></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <img class="shot hero-shot reveal" loading="lazy"
+      src="https://image.thum.io/get/width/1400/crop/875/noanimate/https://catering-prishtina.com" alt="Catering Prishtina homepage" />
+  </section>
+
+  <section class="block reveal">
+    <div class="wrap narrow">
+      <h2>Overview</h2>
+      <p>Catering Prishtina serves events and occasions across the city with quality food and presentation. The brand needed a website that looks as refined as the service — appetising, easy to browse, and quick to turn interest into an enquiry.</p>
+      <p>We delivered a polished, mobile-first site that puts the food and occasions in the spotlight and makes booking effortless.</p>
+    </div>
+  </section>
+
+  <section class="block reveal">
+    <div class="wrap">
+      <h2>What we built</h2>
+      <div class="features">
+        <div class="feat"><h4>Menu &amp; offerings</h4><p>Clear, appetising presentation of catering options and the kinds of events served — weddings, corporate and private occasions.</p></div>
+        <div class="feat"><h4>Visual-first design</h4><p>An elegant, photography-led layout that conveys quality and sets the right impression at a glance.</p></div>
+        <div class="feat"><h4>Enquiry &amp; booking</h4><p>Prominent contact and booking calls-to-action so prospective clients can reach out in seconds.</p></div>
+        <div class="feat"><h4>Mobile-first &amp; fast</h4><p>Built to load quickly and look great on phones, where most guests will discover the brand.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block reveal">
+    <div class="wrap">
+      <h2>Highlights</h2>
+      <div class="chips">
+        <span class="chip">Responsive design</span>
+        <span class="chip">Visual-first</span>
+        <span class="chip">SEO</span>
+        <span class="chip">Performance</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="band reveal">
+      <h2>Want a site like this?</h2>
+      <p>We build beautiful, conversion-focused websites for hospitality brands. Tell us about your project.</p>
+      <div class="cta" style="justify-content:center">
+        <a class="btn btn-primary" href="index.html#contact">Start a project →</a>
+        <a class="btn btn-ghost" href="https://catering-prishtina.com" target="_blank" rel="noopener">Visit catering-prishtina.com ↗</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="logo" href="index.html"><span class="mark">T</span> Troiana</a>
+    <nav><a href="index.html#work">Work</a><a href="index.html#process">Process</a><a href="mailto:hello@troiana.net">Contact</a></nav>
+    <span class="muted">© <span id="yr"></span> Troiana — web.troiana.net</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  const io=new IntersectionObserver((e)=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

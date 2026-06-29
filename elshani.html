@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Elshani Garten — Case Study | Troiana</title>
+<meta name="description" content="How Troiana built the website for Elshani Garten — a garden and landscape construction company in Gilching, Germany." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="case.css" />
+</head>
+<body>
+<div class="bgfx"></div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="logo" href="index.html"><span class="mark">T</span> Troiana</a>
+    <nav class="links">
+      <a href="index.html#services">Services</a>
+      <a href="index.html#work">Work</a>
+      <a href="index.html#process">Process</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <a class="btn btn-primary" href="index.html#contact">Start a project →</a>
+  </div>
+</header>
+
+<main>
+  <section class="wrap"><a class="back" href="index.html#work">← All work</a></section>
+
+  <section class="cs-hero">
+    <div class="wrap">
+      <span class="cs-eyebrow">Case study · Landscaping &amp; marketing</span>
+      <h1>Elshani Garten</h1>
+      <p class="lead">A clean, trustworthy website for a garden and landscape construction company in Gilching — showcasing craftsmanship and turning local searches into enquiries.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://elshani-garten.de" target="_blank" rel="noopener">Visit live site ↗</a>
+        <a class="btn btn-ghost" href="index.html#contact">Start your project</a>
+      </div>
+      <div class="meta">
+        <div class="cell"><div class="k">Client</div><div class="v">Elshani Garten</div></div>
+        <div class="cell"><div class="k">Type</div><div class="v">Marketing website</div></div>
+        <div class="cell"><div class="k">Sector</div><div class="v">Garden &amp; landscaping (GaLaBau)</div></div>
+        <div class="cell"><div class="k">Location</div><div class="v">Gilching, Germany</div></div>
+        <div class="cell"><div class="k">Live</div><div class="v"><a href="https://elshani-garten.de" target="_blank" rel="noopener">elshani-garten.de</a></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <img class="shot hero-shot reveal" loading="lazy"
+      src="https://image.thum.io/get/width/1400/crop/875/noanimate/https://elshani-garten.de" alt="Elshani Garten homepage" />
+  </section>
+
+  <section class="block reveal">
+    <div class="wrap narrow">
+      <h2>Overview</h2>
+      <p>Elshani Garten designs and builds outdoor spaces — "green oases" tailored to each client. The business needed a professional, modern website that conveyed quality craftsmanship and made it easy for homeowners in the Gilching area to understand the services and get in touch.</p>
+      <p>We delivered a fast, mobile-first marketing site that puts the work front and centre and funnels visitors toward a quick contact.</p>
+    </div>
+  </section>
+
+  <section class="block reveal">
+    <div class="wrap">
+      <h2>What we built</h2>
+      <div class="features">
+        <div class="feat"><h4>Service showcase</h4><p>Clear presentation of core services — paving, terraces, wooden decks, fences, lawn/sod installation and winter maintenance.</p></div>
+        <div class="feat"><h4>Trust-building design</h4><p>A clean, natural aesthetic that signals reliability and quality craftsmanship to local homeowners.</p></div>
+        <div class="feat"><h4>Easy contact</h4><p>Phone and email calls-to-action throughout so enquiries are only a tap away on mobile.</p></div>
+        <div class="feat"><h4>Local SEO foundations</h4><p>Fast, semantic, mobile-first build to help the company surface for garden &amp; landscaping searches around Gilching.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block reveal">
+    <div class="wrap">
+      <h2>Highlights</h2>
+      <div class="chips">
+        <span class="chip">Responsive design</span>
+        <span class="chip">Mobile-first</span>
+        <span class="chip">Local SEO</span>
+        <span class="chip">Performance</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="band reveal">
+      <h2>Want a site like this?</h2>
+      <p>We build fast, conversion-focused websites for local businesses. Tell us about your project.</p>
+      <div class="cta" style="justify-content:center">
+        <a class="btn btn-primary" href="index.html#contact">Start a project →</a>
+        <a class="btn btn-ghost" href="https://elshani-garten.de" target="_blank" rel="noopener">Visit elshani-garten.de ↗</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="logo" href="index.html"><span class="mark">T</span> Troiana</a>
+    <nav><a href="index.html#work">Work</a><a href="index.html#process">Process</a><a href="mailto:hello@troiana.net">Contact</a></nav>
+    <span class="muted">© <span id="yr"></span> Troiana — web.troiana.net</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  const io=new IntersectionObserver((e)=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

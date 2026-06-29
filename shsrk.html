@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SHSRK — Case Study | Troiana</title>
+<meta name="description" content="How Troiana built the website for SHSRK — a clear, credible online presence for the organization." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="case.css" />
+</head>
+<body>
+<div class="bgfx"></div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="logo" href="index.html"><span class="mark">T</span> Troiana</a>
+    <nav class="links">
+      <a href="index.html#services">Services</a>
+      <a href="index.html#work">Work</a>
+      <a href="index.html#process">Process</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <a class="btn btn-primary" href="index.html#contact">Start a project →</a>
+  </div>
+</header>
+
+<main>
+  <section class="wrap"><a class="back" href="index.html#work">← All work</a></section>
+
+  <section class="cs-hero">
+    <div class="wrap">
+      <span class="cs-eyebrow">Case study · Organization website</span>
+      <h1>SHSRK</h1>
+      <p class="lead">A clear, credible website for an organization — presenting its mission and activities, making information easy to find and members easy to reach.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://shsrk.org" target="_blank" rel="noopener">Visit live site ↗</a>
+        <a class="btn btn-ghost" href="index.html#contact">Start your project</a>
+      </div>
+      <div class="meta">
+        <div class="cell"><div class="k">Client</div><div class="v">SHSRK</div></div>
+        <div class="cell"><div class="k">Type</div><div class="v">Organization website</div></div>
+        <div class="cell"><div class="k">Focus</div><div class="v">Information &amp; contact</div></div>
+        <div class="cell"><div class="k">Live</div><div class="v"><a href="https://shsrk.org" target="_blank" rel="noopener">shsrk.org</a></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <img class="shot hero-shot reveal" loading="lazy"
+      src="https://image.thum.io/get/width/1400/crop/875/noanimate/https://shsrk.org" alt="SHSRK homepage" />
+  </section>
+
+  <section class="block reveal">
+    <div class="wrap narrow">
+      <h2>Overview</h2>
+      <p>SHSRK needed an online home that presents the organization clearly and professionally — explaining who it is and what it does, and giving visitors an easy way to get the information they need and make contact.</p>
+      <p>We delivered a clean, accessible, mobile-first website that organizes the content well and reads credibly on any device.</p>
+    </div>
+  </section>
+
+  <section class="block reveal">
+    <div class="wrap">
+      <h2>What we built</h2>
+      <div class="features">
+        <div class="feat"><h4>Clear structure</h4><p>Well-organized sections so visitors quickly find what the organization is about and what it offers.</p></div>
+        <div class="feat"><h4>Credible design</h4><p>A clean, trustworthy visual identity appropriate for an established organization.</p></div>
+        <div class="feat"><h4>Easy contact</h4><p>Straightforward contact paths so members and the public can get in touch without friction.</p></div>
+        <div class="feat"><h4>Accessible &amp; fast</h4><p>Mobile-first, accessible and quick to load on every device.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block reveal">
+    <div class="wrap">
+      <h2>Highlights</h2>
+      <div class="chips">
+        <span class="chip">Responsive design</span>
+        <span class="chip">Accessibility</span>
+        <span class="chip">Mobile-first</span>
+        <span class="chip">Performance</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="band reveal">
+      <h2>Need a website for your organization?</h2>
+      <p>We build clear, credible, accessible websites end to end. Tell us about your project.</p>
+      <div class="cta" style="justify-content:center">
+        <a class="btn btn-primary" href="index.html#contact">Start a project →</a>
+        <a class="btn btn-ghost" href="https://shsrk.org" target="_blank" rel="noopener">Visit shsrk.org ↗</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="logo" href="index.html"><span class="mark">T</span> Troiana</a>
+    <nav><a href="index.html#work">Work</a><a href="index.html#process">Process</a><a href="mailto:hello@troiana.net">Contact</a></nav>
+    <span class="muted">© <span id="yr"></span> Troiana — web.troiana.net</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  const io=new IntersectionObserver((e)=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
