@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Portfolio — Troiana</title>
+<meta name="description" content="Selected work by Troiana — websites and web apps we've designed, built and launched." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="case.css" />
+</head>
+<body>
+<div class="bgfx"></div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="logo" href="index.html"><img class="logoimg" src="logo.svg" alt="Troiana" /></a>
+    <nav class="links">
+      <a href="services.html">Services</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="index.html#process">Process</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a class="btn btn-primary" href="contact.html">Start a project →</a>
+  </div>
+</header>
+
+<main>
+  <section class="cs-hero center">
+    <div class="wrap">
+      <span class="cs-eyebrow">Portfolio</span>
+      <h1>Projects we've shipped.</h1>
+      <p class="lead">A selection of the websites and products we've designed, built and launched — for businesses and organizations across Kosovo and Germany.</p>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="work-grid">
+      <a class="proj reveal" href="zolea.html">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://zolea.fun" alt="Zolea" /></div>
+        <div class="body">
+          <span class="tag">Full-stack · Web app</span>
+          <h3>Zolea <span class="arrow">↗</span></h3>
+          <p>A community platform with live coin cards, real-time chat, voice and in-app Solana trading.</p>
+          <div class="url">View case study →</div>
+        </div>
+      </a>
+      <a class="proj reveal" href="printhouse.html">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://print-house.net" alt="PrintHouse" /></div>
+        <div class="body">
+          <span class="tag">Marketing · E-commerce</span>
+          <h3>PrintHouse <span class="arrow">↗</span></h3>
+          <p>Printing, signage and promotional company site with an online product catalogue.</p>
+          <div class="url">View case study →</div>
+        </div>
+      </a>
+      <a class="proj reveal" href="elshani.html">
+        <div class="thumb"><img loading="lazy" src="images/elshani/home.jpg" alt="Elshani Garten" /></div>
+        <div class="body">
+          <span class="tag">Landscaping · WordPress</span>
+          <h3>Elshani Garten <span class="arrow">↗</span></h3>
+          <p>Garden &amp; landscape construction in Gilching — terraces, paving, decks and outdoor design.</p>
+          <div class="url">View case study →</div>
+        </div>
+      </a>
+      <a class="proj reveal" href="gashi.html">
+        <div class="thumb"><img loading="lazy" src="images/gashi/home.jpg" alt="Gashi Garten und Tiefbau" /></div>
+        <div class="body">
+          <span class="tag">Landscaping · WordPress</span>
+          <h3>Gashi Garten &amp; Tiefbau <span class="arrow">↗</span></h3>
+          <p>A reliable partner for garden and outdoor works — GaLaBau, maintenance and groundworks.</p>
+          <div class="url">View case study →</div>
+        </div>
+      </a>
+      <a class="proj reveal" href="catering.html">
+        <div class="thumb"><img loading="lazy" src="images/catering/home.jpg" alt="Catering Prishtina" /></div>
+        <div class="body">
+          <span class="tag">Hospitality · WordPress</span>
+          <h3>Catering Prishtina <span class="arrow">↗</span></h3>
+          <p>An elegant catering &amp; events brand in Prishtina — menus, occasions and online enquiries.</p>
+          <div class="url">View case study →</div>
+        </div>
+      </a>
+      <a class="proj reveal" href="shsrk.html">
+        <div class="thumb"><img loading="lazy" src="images/shsrk/home.jpg" alt="Shoqata e Stomatologëve të Kosovës" /></div>
+        <div class="body">
+          <span class="tag">Association · WordPress</span>
+          <h3>SHSRK <span class="arrow">↗</span></h3>
+          <p>The Dental Association of Kosovo — institutional site with congress &amp; abstract submissions.</p>
+          <div class="url">View case study →</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="band reveal">
+      <h2>Your project could be next.</h2>
+      <p>Tell us what you're building and we'll get back to you within one business day.</p>
+      <div class="cta" style="justify-content:center">
+        <a class="btn btn-primary" href="contact.html">Start a project →</a>
+        <a class="btn btn-ghost" href="services.html">Our services</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="logo" href="index.html"><img class="logoimg" src="logo.svg" alt="Troiana" /></a>
+    <nav><a href="services.html">Services</a><a href="portfolio.html">Portfolio</a><a href="contact.html">Contact</a></nav>
+    <span class="muted">© <span id="yr"></span> Troiana — web.troiana.net</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('yr').textContent=new Date().getFullYear();
+  const io=new IntersectionObserver((e)=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3)*60+'ms';io.observe(el)});
+</script>
+</body>
+</html>
