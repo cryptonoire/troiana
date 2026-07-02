@@ -2,3 +2,7 @@ node_modules/
 .DS_Store
 *.log
 .vercel
+
+# Admin secrets & stored data (never commit)
+config.php
+data/
