@@ -37,12 +37,8 @@
 
   <section class="wrap">
     <div class="contact-grid">
-      <form class="form reveal" action="https://formsubmit.co/hello@troiana.net" method="POST">
-        <input type="hidden" name="_subject" value="New enquiry from web.troiana.net" />
-        <input type="hidden" name="_captcha" value="false" />
-        <input type="hidden" name="_template" value="table" />
-        <input type="hidden" name="_next" value="https://web.troiana.net/contact.html?sent=1" />
-        <input type="text" name="_honey" style="display:none" />
+      <form class="form reveal" action="submit.php" method="POST">
+        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
         <div class="row">
           <div class="field">
             <label for="name">Name</label>
@@ -76,6 +72,7 @@
         </div>
         <button class="btn btn-primary" type="submit" style="justify-content:center">Send message →</button>
         <p id="sentmsg" style="display:none;color:#34d399;font-size:14px;font-weight:600">Thanks — your message has been sent. We'll be in touch within one business day.</p>
+        <p id="errmsg" style="display:none;color:#f87171;font-size:14px;font-weight:600">Something went wrong — please check your name, a valid email and a message, then try again.</p>
       </form>
 
       <aside class="contact-info reveal">
@@ -115,9 +112,13 @@
   document.getElementById('yr').textContent=new Date().getFullYear();
   const io=new IntersectionObserver((e)=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-  if(new URLSearchParams(location.search).get('sent')==='1'){
+  var qs=new URLSearchParams(location.search);
+  if(qs.get('sent')==='1'){
     var m=document.getElementById('sentmsg'); if(m) m.style.display='block';
     var f=document.querySelector('.form'); if(f) f.scrollIntoView({behavior:'smooth'});
+  } else if(qs.get('error')==='1'){
+    var em=document.getElementById('errmsg'); if(em) em.style.display='block';
+    var ef=document.querySelector('.form'); if(ef) ef.scrollIntoView({behavior:'smooth'});
   }
 </script>
 </body>
