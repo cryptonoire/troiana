@@ -78,7 +78,7 @@
       <aside class="contact-info reveal">
         <div class="info-card">
           <div class="k">Email</div>
-          <div class="v"><a href="mailto:hello@troiana.net">hello@troiana.net</a></div>
+          <div class="v"><!-- @INFO_EMAIL --><a href="mailto:hello@troiana.net">hello@troiana.net</a><!-- @/INFO_EMAIL --></div>
         </div>
         <div class="info-card">
           <div class="k">Website</div>
@@ -112,6 +112,7 @@
   document.getElementById('yr').textContent=new Date().getFullYear();
   const io=new IntersectionObserver((e)=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  new Image().src='count.php?_='+Date.now();
   var qs=new URLSearchParams(location.search);
   if(qs.get('sent')==='1'){
     var m=document.getElementById('sentmsg'); if(m) m.style.display='block';

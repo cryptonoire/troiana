@@ -44,7 +44,7 @@
       <button class="tab" data-filter="ecommerce">E-Commerce</button>
       <button class="tab" data-filter="web3">Web3</button>
     </div>
-    <div class="work-grid" id="workGrid">
+    <div class="work-grid" id="workGrid"><!-- @PROJECTS -->
       <a class="proj reveal" data-cat="webdev webapp web3" href="zolea.html">
         <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://zolea.fun" alt="Zolea" /></div>
         <div class="body">
@@ -171,7 +171,7 @@
           <div class="url">View case study →</div>
         </div>
       </a>
-    </div>
+    <!-- @/PROJECTS --></div>
   </section>
 
   <section class="wrap">
@@ -198,6 +198,7 @@
   document.getElementById('yr').textContent=new Date().getFullYear();
   const io=new IntersectionObserver((e)=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
   document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3)*60+'ms';io.observe(el)});
+  new Image().src='count.php?_='+Date.now();
 
   const tabs=document.querySelectorAll('#workTabs .tab');
   const projs=document.querySelectorAll('#workGrid .proj');

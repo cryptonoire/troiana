@@ -1,50 +1,36 @@
 <?php
 /**
  * Troiana admin console — /admin/
- * WordPress-style dashboard for contact-form messages (data/messages.json).
+ * Dark, Troiana-styled dashboard. Manage contact messages, portfolio
+ * projects, services and site text; view the visitor counter. Content edits
+ * save to data/content.json and republish the static .html pages via lib.php.
  */
 session_start();
+require __DIR__ . '/lib.php';
 
-$cfg = file_exists(__DIR__ . '/../config.php') ? require __DIR__ . '/../config.php' : null;
-$dataFile = __DIR__ . '/../data/messages.json';
+$cfg = file_exists(ROOT_DIR . '/config.php') ? require ROOT_DIR . '/config.php' : null;
 
-/* ---------- helpers ---------- */
-function load_messages($f) {
-    if (!file_exists($f)) return [];
-    $m = json_decode((string)file_get_contents($f), true);
-    return is_array($m) ? $m : [];
-}
-function save_messages($f, $m) {
-    $fp = fopen($f, 'c+');
-    if (!$fp) return false;
-    flock($fp, LOCK_EX);
-    ftruncate($fp, 0); rewind($fp);
-    fwrite($fp, json_encode(array_values($m), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-    flock($fp, LOCK_UN); fclose($fp);
-    return true;
-}
-function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function token() {
     if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(16));
     return $_SESSION['csrf'];
 }
-function excerpt($s, $n = 120) {
+function redirect_to($section, $notice = '', $warnings = []) {
+    $p = ['s' => $section];
+    if ($notice !== '') $p['notice'] = $notice;
+    if (!empty($warnings)) $p['warn'] = implode(' | ', $warnings);
+    header('Location: index.php?' . http_build_query($p));
+    exit;
+}
+function excerpt($s, $n = 130) {
     $s = trim(preg_replace('/\s+/', ' ', (string)$s));
     return mb_strlen($s) > $n ? mb_substr($s, 0, $n) . '…' : $s;
 }
 
-/* ---------- setup guard ---------- */
+/* ---------- setup / auth ---------- */
 $setupNeeded = !$cfg || empty($cfg['admin_password']) || $cfg['admin_password'] === 'change-this-now';
 
-/* ---------- logout ---------- */
-if (isset($_GET['logout'])) {
-    $_SESSION = [];
-    session_destroy();
-    header('Location: index.php');
-    exit;
-}
+if (isset($_GET['logout'])) { $_SESSION = []; session_destroy(); header('Location: index.php'); exit; }
 
-/* ---------- login ---------- */
 $loginError = '';
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['password']) && !$setupNeeded) {
     if (hash_equals((string)$cfg['admin_password'], (string)$_POST['password'])) {
@@ -56,74 +42,144 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['password']) &
 }
 $authed = !empty($_SESSION['auth']);
 
-/* ---------- routing ---------- */
-$page = ($_GET['page'] ?? 'dashboard') === 'messages' ? 'messages' : 'dashboard';
-$q = trim((string)($_GET['q'] ?? ''));
-$notice = '';
+$section = $_GET['s'] ?? 'dashboard';
+if (!in_array($section, ['dashboard', 'messages', 'projects', 'services', 'content'], true)) $section = 'dashboard';
 
-/* ---------- actions (require auth + csrf) ---------- */
-if ($authed && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && !isset($_POST['password'])) {
-    if (!hash_equals(token(), (string)($_POST['csrf'] ?? ''))) {
-        http_response_code(400); exit('Bad request');
-    }
-    $messages = load_messages($dataFile);
+/* ---------- actions ---------- */
+if ($authed && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['act'])) {
+    if (!hash_equals(token(), (string)($_POST['csrf'] ?? ''))) { http_response_code(400); exit('Bad request'); }
+    $act = $_POST['act'];
 
-    if (isset($_POST['do_delete'])) {
-        $id = (string)$_POST['do_delete'];
-        $messages = array_filter($messages, fn($m) => ($m['id'] ?? '') !== $id);
-        $flash = 'Message deleted.';
-    } elseif (isset($_POST['do_toggle'])) {
-        $id = (string)$_POST['do_toggle'];
-        foreach ($messages as &$m) { if (($m['id'] ?? '') === $id) $m['read'] = empty($m['read']); }
-        unset($m);
-        $flash = 'Message updated.';
-    } elseif (isset($_POST['do_read_all'])) {
-        foreach ($messages as &$m) { $m['read'] = true; } unset($m);
-        $flash = 'All messages marked as read.';
-    } elseif (isset($_POST['do_bulk'])) {
-        $ids = array_map('strval', (array)($_POST['ids'] ?? []));
-        $ba  = (string)($_POST['bulk_action'] ?? '');
-        $n   = count($ids);
-        if ($n && $ba === 'delete') {
-            $messages = array_filter($messages, fn($m) => !in_array((string)($m['id'] ?? ''), $ids, true));
-            $flash = $n . ' message' . ($n > 1 ? 's' : '') . ' deleted.';
-        } elseif ($n && ($ba === 'read' || $ba === 'unread')) {
-            $val = $ba === 'read';
-            foreach ($messages as &$m) { if (in_array((string)($m['id'] ?? ''), $ids, true)) $m['read'] = $val; }
-            unset($m);
-            $flash = $n . ' message' . ($n > 1 ? 's' : '') . ' marked as ' . $ba . '.';
+    /* --- messages --- */
+    if (strpos($act, 'msg_') === 0) {
+        $messages = read_json(MESSAGES_FILE, []);
+        if ($act === 'msg_delete') {
+            $id = (string)$_POST['id'];
+            $messages = array_filter($messages, fn($m) => ($m['id'] ?? '') !== $id);
+            $note = 'Message deleted.';
+        } elseif ($act === 'msg_toggle') {
+            $id = (string)$_POST['id'];
+            foreach ($messages as &$m) if (($m['id'] ?? '') === $id) $m['read'] = empty($m['read']);
+            unset($m); $note = 'Message updated.';
+        } elseif ($act === 'msg_readall') {
+            foreach ($messages as &$m) $m['read'] = true; unset($m); $note = 'All messages marked read.';
+        } elseif ($act === 'msg_bulk') {
+            $ids = array_map('strval', (array)($_POST['ids'] ?? []));
+            $ba = (string)($_POST['bulk_action'] ?? ''); $n = count($ids);
+            if ($n && $ba === 'delete') { $messages = array_filter($messages, fn($m) => !in_array((string)($m['id'] ?? ''), $ids, true)); $note = "$n deleted."; }
+            elseif ($n && ($ba === 'read' || $ba === 'unread')) { $val = $ba === 'read'; foreach ($messages as &$m) if (in_array((string)($m['id'] ?? ''), $ids, true)) $m['read'] = $val; unset($m); $note = "$n marked $ba."; }
+            else $note = '';
         }
+        write_json(MESSAGES_FILE, array_values($messages));
+        redirect_to('messages', $note ?? '');
     }
-    save_messages($dataFile, $messages);
-    $params = ['page' => $page];
-    if ($q !== '') $params['q'] = $q;
-    if (!empty($flash)) $params['notice'] = $flash;
-    header('Location: index.php?' . http_build_query($params));
-    exit;
-}
 
-if (isset($_GET['notice'])) $notice = (string)$_GET['notice'];
+    /* --- content-bearing actions (save, then republish) --- */
+    $c = load_content();
+
+    if ($act === 'save_project') {
+        $cats = array_values(array_intersect(array_keys(categories()), (array)($_POST['cats'] ?? [])));
+        $p = [
+            'title'    => trim((string)$_POST['title']),
+            'tag'      => trim((string)$_POST['tag']),
+            'desc'     => trim((string)$_POST['desc']),
+            'img'      => trim((string)$_POST['img']),
+            'href'     => trim((string)$_POST['href']),
+            'external' => !empty($_POST['external']),
+            'cta'      => trim((string)$_POST['cta']) !== '' ? trim((string)$_POST['cta']) : 'View →',
+            'cats'     => $cats,
+        ];
+        $idx = (string)($_POST['idx'] ?? '');
+        if ($idx === '' || $idx === 'new') $c['projects'][] = $p;
+        elseif (isset($c['projects'][(int)$idx])) $c['projects'][(int)$idx] = $p;
+        save_content($c); $w = publish_all($c);
+        redirect_to('projects', 'Project saved & published.', $w);
+    }
+    if ($act === 'del_project') {
+        $i = (int)$_POST['idx'];
+        if (isset($c['projects'][$i])) { array_splice($c['projects'], $i, 1); save_content($c); $w = publish_all($c); redirect_to('projects', 'Project deleted & published.', $w); }
+        redirect_to('projects');
+    }
+    if ($act === 'move_project') {
+        $i = (int)$_POST['idx']; $j = $i + ($_POST['dir'] === 'up' ? -1 : 1);
+        if (isset($c['projects'][$i], $c['projects'][$j])) { $t = $c['projects'][$i]; $c['projects'][$i] = $c['projects'][$j]; $c['projects'][$j] = $t; save_content($c); $w = publish_all($c); redirect_to('projects', 'Order updated & published.', $w); }
+        redirect_to('projects');
+    }
+    if ($act === 'save_service') {
+        $bullets = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string)($_POST['bullets'] ?? ''))), fn($b) => $b !== ''));
+        $s = [
+            'icon'    => array_key_exists((string)$_POST['icon'], icons()) ? (string)$_POST['icon'] : 'monitor',
+            'title'   => trim((string)$_POST['title']),
+            'desc'    => trim((string)$_POST['desc']),
+            'bullets' => $bullets,
+        ];
+        $idx = (string)($_POST['idx'] ?? '');
+        if ($idx === '' || $idx === 'new') $c['services'][] = $s;
+        elseif (isset($c['services'][(int)$idx])) $c['services'][(int)$idx] = $s;
+        save_content($c); $w = publish_all($c);
+        redirect_to('services', 'Service saved & published.', $w);
+    }
+    if ($act === 'del_service') {
+        $i = (int)$_POST['idx'];
+        if (isset($c['services'][$i])) { array_splice($c['services'], $i, 1); save_content($c); $w = publish_all($c); redirect_to('services', 'Service deleted & published.', $w); }
+        redirect_to('services');
+    }
+    if ($act === 'move_service') {
+        $i = (int)$_POST['idx']; $j = $i + ($_POST['dir'] === 'up' ? -1 : 1);
+        if (isset($c['services'][$i], $c['services'][$j])) { $t = $c['services'][$i]; $c['services'][$i] = $c['services'][$j]; $c['services'][$j] = $t; save_content($c); $w = publish_all($c); redirect_to('services', 'Order updated & published.', $w); }
+        redirect_to('services');
+    }
+    if ($act === 'save_content') {
+        $c['hero']['title']    = trim((string)($_POST['hero_title'] ?? ''));
+        $c['hero']['sub']      = trim((string)($_POST['hero_sub'] ?? ''));
+        $c['contact']['email'] = trim((string)($_POST['contact_email'] ?? ''));
+        $ns = (array)($_POST['metric_n'] ?? []); $ls = (array)($_POST['metric_l'] ?? []);
+        $metrics = [];
+        foreach ($ns as $i => $n) {
+            $n = trim((string)$n); $l = trim((string)($ls[$i] ?? ''));
+            if ($n !== '' || $l !== '') $metrics[] = ['n' => $n, 'l' => $l];
+        }
+        $c['metrics'] = $metrics;
+        save_content($c); $w = publish_all($c);
+        redirect_to('content', 'Site content saved & published.', $w);
+    }
+    if ($act === 'republish') {
+        $w = publish_all($c);
+        redirect_to($section, 'Site republished from saved content.', $w);
+    }
+}
 
 /* ---------- data for views ---------- */
-$all = $authed ? load_messages($dataFile) : [];
-$total = count($all);
-$unread = 0;
-$recent7 = 0;
-$weekAgo = strtotime('-7 days');
-foreach ($all as $m) {
-    if (empty($m['read'])) $unread++;
-    if (strtotime($m['time'] ?? 'now') >= $weekAgo) $recent7++;
-}
+$notice   = (string)($_GET['notice'] ?? '');
+$warn     = (string)($_GET['warn'] ?? '');
+$content  = $authed ? load_content() : default_content();
+$allMsgs  = $authed ? read_json(MESSAGES_FILE, []) : [];
+$unread   = 0; foreach ($allMsgs as $m) if (empty($m['read'])) $unread++;
+$stats    = $authed ? visit_stats() : ['total' => 0, 'today' => 0, 'week' => 0, 'series' => [], 'visitors' => 0, 'visitors_today' => 0];
 
-$list = array_reverse($all);
+/* messages list (search + newest first) */
+$q = trim((string)($_GET['q'] ?? ''));
+$msgList = array_reverse($allMsgs);
 if ($q !== '') {
     $needle = mb_strtolower($q);
-    $list = array_filter($list, function ($m) use ($needle) {
+    $msgList = array_filter($msgList, function ($m) use ($needle) {
         $hay = mb_strtolower(($m['name'] ?? '') . ' ' . ($m['email'] ?? '') . ' ' . ($m['company'] ?? '') . ' ' . ($m['message'] ?? ''));
         return mb_strpos($hay, $needle) !== false;
     });
 }
-$recent = array_slice(array_reverse($all), 0, 5);
+
+/* project/service edit target */
+$editIdx = $_GET['edit'] ?? null;
+$editing = null;
+if ($section === 'projects' && $editIdx !== null) {
+    $editing = ($editIdx === 'new') ? ['title'=>'','tag'=>'','desc'=>'','img'=>'','href'=>'','external'=>false,'cta'=>'View case study →','cats'=>[]]
+             : ($content['projects'][(int)$editIdx] ?? null);
+}
+$editSvc = null;
+if ($section === 'services' && $editIdx !== null) {
+    $editSvc = ($editIdx === 'new') ? ['icon'=>'monitor','title'=>'','desc'=>'','bullets'=>[]]
+             : ($content['services'][(int)$editIdx] ?? null);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -131,314 +187,363 @@ $recent = array_slice(array_reverse($all), 0, 5);
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title><?= $authed ? ($page === 'messages' ? 'Messages' : 'Dashboard') . ' ‹ ' : '' ?>Troiana Admin</title>
+<title>Troiana Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
-  :root{
-    --wp-bg:#f0f0f1;--wp-menu:#1d2327;--wp-menu-2:#2c3338;--wp-menu-fg:#f0f0f1;
-    --wp-blue:#2271b1;--wp-blue-h:#135e96;--wp-accent:#72aee6;
-    --wp-line:#c3c4c7;--wp-line-2:#dcdcde;--wp-text:#1d2327;--wp-muted:#646970;
-    --wp-green:#00a32a;--wp-red:#d63638;--wp-orange:#dba617;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{background:var(--wp-bg);color:var(--wp-text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
-    font-size:13px;line-height:1.4;-webkit-font-smoothing:antialiased}
-  a{color:var(--wp-blue);text-decoration:none}
-  a:hover{color:var(--wp-blue-h)}
-
-  /* ===== login ===== */
-  .login-wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
-  .login-box{width:100%;max-width:340px}
-  .login-logo{text-align:center;margin-bottom:22px}
-  .login-logo img{height:44px}
-  .login-card{background:#fff;border:1px solid var(--wp-line-2);box-shadow:0 1px 3px rgba(0,0,0,.04);padding:26px 24px;border-radius:4px}
-  .login-card label{display:block;font-size:14px;margin:0 0 6px}
-  .login-card input[type=password]{width:100%;padding:8px 10px;font-size:16px;border:1px solid #8c8f94;border-radius:4px;box-shadow:inset 0 1px 2px rgba(0,0,0,.07)}
-  .login-card input:focus{outline:2px solid var(--wp-accent);outline-offset:-1px;border-color:var(--wp-blue)}
-  .login-sub{color:var(--wp-muted);text-align:center;margin:14px 0 0;font-size:12px}
-  .notice-error{background:#fcf0f1;border-left:4px solid var(--wp-red);padding:10px 12px;margin:0 0 16px;border-radius:2px}
-  .notice-warn{background:#fcf9e8;border-left:4px solid var(--wp-orange);padding:12px;margin:0 0 16px;border-radius:2px}
-  .notice-warn code{background:#f6f7f7;padding:1px 5px;border-radius:3px}
-
-  /* ===== button ===== */
-  .button{display:inline-block;font:inherit;font-size:13px;line-height:2.15;min-height:30px;
-    padding:0 12px;border-radius:3px;border:1px solid #c3c4c7;background:#f6f7f7;color:#2c3338;
-    cursor:pointer;vertical-align:middle;white-space:nowrap}
-  .button:hover{background:#f0f0f1;border-color:#8c8f94;color:#2c3338}
-  .button-primary{background:var(--wp-blue);border-color:var(--wp-blue);color:#fff}
-  .button-primary:hover{background:var(--wp-blue-h);border-color:var(--wp-blue-h);color:#fff}
-  .button-large{min-height:34px;line-height:2.4;padding:0 14px;font-size:14px}
-  .button-link{background:none;border:none;padding:0;min-height:0;color:var(--wp-blue);cursor:pointer;font:inherit}
-  .button-link:hover{color:var(--wp-blue-h);text-decoration:underline;background:none}
-  .button-link.delete{color:var(--wp-red)}
-
-  /* ===== admin bar ===== */
-  #wpadminbar{position:fixed;top:0;left:0;right:0;height:32px;background:var(--wp-menu);color:#c3c4c7;
-    display:flex;align-items:center;z-index:99;font-size:13px}
-  #wpadminbar .ab-item{display:flex;align-items:center;gap:8px;padding:0 12px;height:32px;color:#eee}
-  #wpadminbar a.ab-item:hover{background:var(--wp-menu-2);color:#72aee6}
-  #wpadminbar .spacer{margin-left:auto}
-  #wpadminbar .site-name{font-weight:600}
-
-  /* ===== layout ===== */
-  #adminmenu{position:fixed;top:32px;left:0;bottom:0;width:160px;background:var(--wp-menu);z-index:98;overflow-y:auto}
-  #adminmenu a{display:flex;align-items:center;gap:9px;padding:9px 12px;color:var(--wp-menu-fg);font-size:14px}
-  #adminmenu a .ico{width:18px;height:18px;flex:0 0 auto;opacity:.7}
-  #adminmenu a:hover{background:var(--wp-menu-2);color:#72aee6}
-  #adminmenu a:hover .ico{opacity:1}
-  #adminmenu a.current{background:var(--wp-blue);color:#fff;font-weight:600}
-  #adminmenu a.current .ico{opacity:1}
-  #adminmenu .menu-count{margin-left:auto;background:#d63638;color:#fff;border-radius:10px;
-    font-size:11px;font-weight:600;padding:1px 7px;line-height:1.6}
-  #adminmenu a.current .menu-count{background:rgba(255,255,255,.25)}
-  .menu-sep{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
-
-  #wpbody{margin:32px 0 0 160px;min-height:calc(100vh - 32px);padding:0}
-  .wrap{padding:16px 20px 60px;max-width:1120px}
-  .wrap h1.page-title{font-size:23px;font-weight:400;margin:8px 0 4px;padding:9px 0 4px}
-  .subtitle{color:var(--wp-muted);font-size:13px;margin:0 0 12px}
-
-  .notice-success{background:#fff;border-left:4px solid var(--wp-green);box-shadow:0 1px 1px rgba(0,0,0,.04);
-    padding:10px 12px;margin:0 0 16px;border-radius:2px}
-
-  /* ===== dashboard widgets ===== */
-  .dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px}
-  @media(max-width:900px){.dash-cols{grid-template-columns:1fr}}
-  .postbox{background:#fff;border:1px solid var(--wp-line);border-radius:4px;box-shadow:0 1px 1px rgba(0,0,0,.04)}
-  .postbox h2{font-size:14px;font-weight:600;padding:10px 14px;margin:0;border-bottom:1px solid var(--wp-line-2)}
-  .postbox .inside{padding:12px 14px}
-  .glance{display:flex;flex-wrap:wrap;gap:10px}
-  .glance a,.glance span{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--wp-muted);
-    padding:6px 0;width:100%}
-  .glance .big{font-size:20px;font-weight:600;color:var(--wp-text);min-width:40px}
-  .glance .unread .big{color:var(--wp-blue)}
-  .recent-item{display:block;padding:10px 0;border-bottom:1px solid var(--wp-line-2)}
-  .recent-item:last-child{border-bottom:0}
-  .recent-item .r-top{display:flex;gap:8px;align-items:center}
-  .recent-item .r-name{font-weight:600;color:var(--wp-text)}
-  .recent-item.is-unread .r-name::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;
-    background:var(--wp-blue);margin-right:6px;vertical-align:middle}
-  .recent-item .r-when{color:var(--wp-muted);font-size:12px;margin-left:auto}
-  .recent-item .r-msg{color:var(--wp-muted);margin-top:3px}
-  .empty-inside{color:var(--wp-muted);padding:6px 0}
-
-  /* ===== list table ===== */
-  .tablenav{display:flex;align-items:center;gap:8px;margin:10px 0;flex-wrap:wrap}
-  .tablenav .actions{display:flex;gap:6px;align-items:center}
-  .tablenav select{height:30px;border:1px solid #8c8f94;border-radius:3px;background:#fff;font:inherit;font-size:13px;padding:0 6px}
-  .tablenav .count{margin-left:auto;color:var(--wp-muted)}
-  .search-form{display:flex;gap:6px;margin-bottom:10px}
-  .search-form input[type=search]{height:30px;border:1px solid #8c8f94;border-radius:3px;padding:0 8px;font:inherit;font-size:13px;min-width:220px}
-  .search-form input:focus{outline:2px solid var(--wp-accent);outline-offset:-1px}
-
-  table.wp-list-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--wp-line);
-    border-radius:4px;box-shadow:0 1px 1px rgba(0,0,0,.04);overflow:hidden}
-  .wp-list-table thead th,.wp-list-table tfoot th{text-align:left;font-weight:600;font-size:13px;
-    padding:9px 10px;border-bottom:1px solid var(--wp-line)}
-  .wp-list-table tfoot th{border-bottom:0;border-top:1px solid var(--wp-line)}
-  .wp-list-table td{padding:11px 10px;border-bottom:1px solid var(--wp-line-2);vertical-align:top}
-  .wp-list-table tbody tr:last-child td{border-bottom:0}
-  .wp-list-table tbody tr:hover{background:#f6f7f7}
-  .wp-list-table .check-column{width:2.2em;padding-left:12px}
-  .wp-list-table .col-from{width:24%}
-  .wp-list-table .col-type{width:14%}
-  .wp-list-table .col-when{width:16%;white-space:nowrap}
-  .row-unread{background:#fff}
-  .row-unread td.col-from .from-name{font-weight:700}
-  .row-unread td.col-from .from-name::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;
-    background:var(--wp-blue);margin-right:7px;vertical-align:middle}
-  .from-name{color:var(--wp-text)}
-  .from-email{display:block;color:var(--wp-muted);font-size:12px;margin-top:2px}
-  .msg-excerpt{color:var(--wp-text)}
-  .badge{display:inline-block;background:#f0f0f1;border:1px solid var(--wp-line);color:var(--wp-muted);
-    border-radius:3px;padding:1px 7px;font-size:12px}
-  .row-actions{margin-top:6px;color:#a7aaad;font-size:12px;visibility:hidden}
+  :root{--bg:#000;--bg-elev:#0a0a0a;--card:#0e0e0f;--line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.16);
+    --fg:#f5f5f7;--muted:#9a9a9f;--muted-2:#6b6b70;--accent:#fff;--green:#34d399;--red:#f87171;--radius:16px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--fg);line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 22px}
+  header{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .bar{display:flex;align-items:center;gap:16px;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em}
+  .brand img{height:26px}
+  .navtabs{display:flex;gap:4px;margin-left:14px;flex-wrap:wrap}
+  .navtabs a{padding:8px 13px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--muted);position:relative}
+  .navtabs a:hover{color:var(--fg);background:var(--bg-elev)}
+  .navtabs a.on{color:#000;background:var(--accent)}
+  .navtabs a .cnt{display:inline-block;margin-left:6px;background:var(--red);color:#fff;border-radius:999px;font-size:11px;font-weight:800;padding:0 6px}
+  .navtabs a.on .cnt{background:rgba(0,0,0,.25);color:#000}
+  .bar .right{margin-left:auto;display:flex;gap:8px}
+  .muted{color:var(--muted)}
+  .btn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-weight:600;font-size:13.5px;cursor:pointer;
+    border:1px solid var(--line-strong);background:var(--bg-elev);color:var(--fg);padding:9px 15px;border-radius:10px;transition:.15s}
+  .btn:hover{border-color:#fff}
+  .btn.sm{padding:6px 11px;font-size:12.5px;border-radius:8px}
+  .btn.danger:hover{border-color:var(--red);color:var(--red)}
+  .btn.primary{background:var(--accent);color:#000;border-color:#fff}
+  .btn.primary:hover{opacity:.9}
+  .btn-link{background:none;border:none;color:var(--muted);cursor:pointer;font:inherit;font-weight:600;font-size:12.5px;padding:0}
+  .btn-link:hover{color:var(--fg)}
+  .btn-link.del{color:#c66}
+  .btn-link.del:hover{color:var(--red)}
+  main{padding:26px 0 80px}
+  h1.page{font-size:1.7rem;letter-spacing:-.02em;margin-bottom:4px}
+  .sub{color:var(--muted);margin-bottom:22px}
+  .notice{border:1px solid var(--line-strong);border-left:3px solid var(--green);background:#0c1410;border-radius:10px;padding:12px 15px;margin-bottom:16px;font-size:14px}
+  .notice.warn{border-left-color:#dba617;background:#14110a;color:#f0dca8}
+  /* login */
+  .login{min-height:100vh;display:grid;place-items:center;padding:24px}
+  .login .box{width:100%;max-width:380px;border:1px solid var(--line);background:var(--card);border-radius:var(--radius);padding:34px;text-align:center}
+  .login img{height:40px;margin-bottom:18px}
+  .login h1{font-size:1.4rem;letter-spacing:-.02em}
+  .login p{color:var(--muted);font-size:14px;margin-top:8px}
+  .login input{width:100%;margin-top:18px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:11px;padding:13px 14px;color:var(--fg);font:inherit;font-size:15px}
+  .login input:focus{outline:none;border-color:#fff}
+  .login button{width:100%;margin-top:14px;justify-content:center}
+  .err{color:var(--red);font-size:13px;margin-top:12px;font-weight:600}
+  .warnbox{border:1px solid var(--line-strong);background:#1a1205;border-radius:12px;padding:16px;margin-top:18px;font-size:13px;color:#f5d9a8;text-align:left}
+  .warnbox code{background:#000;padding:1px 5px;border-radius:4px}
+  /* cards / grid */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  @media(max-width:820px){.cards{grid-template-columns:1fr 1fr}}
+  .stat{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:18px}
+  .stat .n{font-size:1.9rem;font-weight:800;letter-spacing:-.02em}
+  .stat .l{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .stat.accent .n{color:var(--green)}
+  .panel{border:1px solid var(--line);background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:18px}
+  .panel h2{font-size:1.05rem;font-weight:700;margin-bottom:14px}
+  .chart{display:flex;align-items:flex-end;gap:5px;height:90px;margin-top:6px}
+  .chart .b{flex:1;background:linear-gradient(180deg,#3a3a40,#17171a);border-radius:4px 4px 0 0;min-height:3px;position:relative}
+  .chart .b span{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:9px;color:var(--muted-2)}
+  .chart .b.today{background:linear-gradient(180deg,var(--green),#0b5)}
+  /* tables */
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-2);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line)}
+  td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}
+  tr:last-child td{border-bottom:0}
+  .row-actions{display:flex;gap:12px;margin-top:6px;visibility:hidden}
   tr:hover .row-actions{visibility:visible}
-  .row-actions span{margin-right:4px}
-  .row-actions .sep{color:#c3c4c7}
-  .when-muted{color:var(--wp-muted)}
-  .empty-row td{text-align:center;color:var(--wp-muted);padding:34px 10px}
-
-  @media(max-width:782px){
-    #adminmenu{width:52px}
-    #adminmenu a .label,#adminmenu .menu-count{display:none}
-    #wpbody{margin-left:52px}
-    #wpadminbar .site-name{display:none}
-    .wp-list-table .col-type,.wp-list-table .col-when{display:none}
-  }
+  .pill{display:inline-block;border:1px solid var(--line-strong);border-radius:999px;padding:2px 9px;font-size:11.5px;color:var(--muted);margin:2px 3px 0 0}
+  .thumb-sm{width:66px;height:42px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:#060607}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);display:inline-block;margin-right:6px}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+  .toolbar .right{margin-left:auto;display:flex;gap:8px}
+  form.inline{display:inline}
+  input[type=text],input[type=search],input[type=email],input[type=url],textarea,select{
+    background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;color:var(--fg);font:inherit;font-size:14px;width:100%}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:#fff}
+  textarea{resize:vertical;min-height:74px}
+  label.fld{display:block;margin-bottom:14px}
+  label.fld .lab{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:600}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.two{grid-template-columns:1fr}}
+  .checks{display:flex;flex-wrap:wrap;gap:14px}
+  .checks label{display:flex;align-items:center;gap:7px;font-size:14px}
+  .checks input,.chk input{width:auto}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px}
+  .icochoice{display:flex;flex-wrap:wrap;gap:8px}
+  .icochoice label{cursor:pointer}
+  .icochoice input{display:none}
+  .icochoice .ic{width:46px;height:46px;border:1px solid var(--line-strong);border-radius:12px;display:grid;place-items:center;background:#000}
+  .icochoice .ic svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round;color:#fff}
+  .icochoice input:checked + .ic{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+  .empty{text-align:center;color:var(--muted);border:1px dashed var(--line-strong);border-radius:var(--radius);padding:50px 20px}
+  .metric-row{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-bottom:8px}
+  .hint{color:var(--muted-2);font-size:12px;margin-top:5px}
+  footer{color:var(--muted-2);font-size:12.5px;text-align:center;padding:40px 0}
 </style>
 </head>
 <body>
 
 <?php if (!$authed): ?>
-  <div class="login-wrap">
-    <div class="login-box">
-      <div class="login-logo"><img src="../logo.svg" alt="Troiana" /></div>
-      <div class="login-card">
-        <?php if ($setupNeeded): ?>
-          <div class="notice-warn"><b>Setup needed.</b> Copy <code>config.sample.php</code> to <code>config.php</code> on the server and set a real <code>admin_password</code>, then reload this page.</div>
-        <?php else: ?>
-          <?php if ($loginError): ?><div class="notice-error"><?= e($loginError) ?></div><?php endif; ?>
-          <form method="POST">
-            <label for="password">Password</label>
-            <input id="password" type="password" name="password" autofocus required />
-            <p style="margin:16px 0 0;text-align:right">
-              <button class="button button-primary button-large" type="submit">Log In</button>
-            </p>
-          </form>
-        <?php endif; ?>
-      </div>
-      <p class="login-sub">Troiana admin · <a href="../index.html">← Back to site</a></p>
-    </div>
-  </div>
-
-<?php else: ?>
-  <div id="wpadminbar">
-    <a class="ab-item" href="../index.html" target="_blank"><span class="site-name">Troiana</span></a>
-    <a class="ab-item" href="../index.html" target="_blank">Visit site ↗</a>
-    <span class="spacer"></span>
-    <span class="ab-item">Howdy, Admin</span>
-    <a class="ab-item" href="?logout">Log Out</a>
-  </div>
-
-  <nav id="adminmenu">
-    <a class="<?= $page === 'dashboard' ? 'current' : '' ?>" href="index.php?page=dashboard">
-      <svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M3 3h6v6H3V3zm0 8h6v6H3v-6zm8-8h6v6h-6V3zm0 8h6v6h-6v-6z"/></svg>
-      <span class="label">Dashboard</span>
-    </a>
-    <a class="<?= $page === 'messages' ? 'current' : '' ?>" href="index.php?page=messages">
-      <svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M2 4h16v12H2V4zm2 2v.8l6 3.7 6-3.7V6H4zm12 8V9l-6 3.7L4 9v5h12z"/></svg>
-      <span class="label">Messages</span>
-      <?php if ($unread): ?><span class="menu-count"><?= (int)$unread ?></span><?php endif; ?>
-    </a>
-    <div class="menu-sep"></div>
-    <a href="../index.html" target="_blank">
-      <svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm5.6 5h-2.1a11 11 0 00-1-2.6A6 6 0 0115.6 7zM10 4c.6.8 1.1 1.8 1.4 3H8.6c.3-1.2.8-2.2 1.4-3zM4.3 13A6 6 0 014 11h2.3c0 .7.1 1.4.2 2H4.3zm0-4A6 6 0 015.6 7H7.5c-.1.6-.2 1.3-.2 2H4.3zm.9 6h2.1c.3 1 .6 1.9 1 2.6A6 6 0 015.2 15zM10 16c-.6-.8-1.1-1.8-1.4-3h2.8c-.3 1.2-.8 2.2-1.4 3zm1.7-5H8.3c-.1-.6-.2-1.3-.2-2s.1-1.4.2-2h3.4c.1.6.2 1.3.2 2s-.1 1.4-.2 2zm.6 4.6c.4-.7.7-1.6 1-2.6h2.1a6 6 0 01-3.1 2.6zM13.7 13c.1-.6.2-1.3.2-2h2.4a6 6 0 01-.3 2h-2.3z"/></svg>
-      <span class="label">View Site</span>
-    </a>
-  </nav>
-
-  <div id="wpbody">
-    <div class="wrap">
-      <?php if ($notice !== ''): ?>
-        <div class="notice-success"><?= e($notice) ?></div>
-      <?php endif; ?>
-
-      <?php if ($page === 'dashboard'): ?>
-        <h1 class="page-title">Dashboard</h1>
-        <p class="subtitle">Welcome to the Troiana admin. Contact-form submissions land here.</p>
-        <div class="dash-cols">
-          <div class="postbox">
-            <h2>At a Glance</h2>
-            <div class="inside">
-              <div class="glance">
-                <a href="index.php?page=messages"><span class="big"><?= (int)$total ?></span> total message<?= $total === 1 ? '' : 's' ?></a>
-                <a class="unread" href="index.php?page=messages"><span class="big"><?= (int)$unread ?></span> unread</a>
-                <span><span class="big"><?= (int)$recent7 ?></span> in the last 7 days</span>
-              </div>
-            </div>
-          </div>
-          <div class="postbox">
-            <h2>Recent Messages</h2>
-            <div class="inside">
-              <?php if (empty($recent)): ?>
-                <p class="empty-inside">No messages yet. Submissions from the contact form will appear here.</p>
-              <?php else: foreach ($recent as $m): ?>
-                <a class="recent-item <?= empty($m['read']) ? 'is-unread' : '' ?>" href="index.php?page=messages&q=<?= e(urlencode($m['email'] ?? '')) ?>">
-                  <span class="r-top">
-                    <span class="r-name"><?= e($m['name'] ?? '—') ?></span>
-                    <span class="r-when"><?= e(date('M j, H:i', strtotime($m['time'] ?? 'now'))) ?></span>
-                  </span>
-                  <span class="r-msg"><?= e(excerpt($m['message'] ?? '', 90)) ?></span>
-                </a>
-              <?php endforeach; endif; ?>
-              <?php if (!empty($recent)): ?>
-                <p style="margin:12px 0 0"><a href="index.php?page=messages">View all messages →</a></p>
-              <?php endif; ?>
-            </div>
-          </div>
-        </div>
-
-      <?php else: /* ===== messages ===== */ ?>
-        <h1 class="page-title">Messages
-          <?php if ($q !== ''): ?><span style="font-size:13px;color:var(--wp-muted)">— search results for “<?= e($q) ?>”</span><?php endif; ?>
-        </h1>
-        <p class="subtitle"><?= (int)$total ?> total · <?= (int)$unread ?> unread</p>
-
-        <form class="search-form" method="GET">
-          <input type="hidden" name="page" value="messages" />
-          <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search name, email, company, text…" />
-          <button class="button" type="submit">Search Messages</button>
-          <?php if ($q !== ''): ?><a class="button" href="index.php?page=messages">Clear</a><?php endif; ?>
-        </form>
-
+  <div class="login">
+    <div class="box">
+      <img src="../logo.svg" alt="Troiana" />
+      <h1>Troiana Admin</h1>
+      <?php if ($setupNeeded): ?>
+        <div class="warnbox"><b>Setup needed.</b> Copy <code>config.sample.php</code> to <code>config.php</code> on the server and set a real <code>admin_password</code>, then reload.</div>
+      <?php else: ?>
+        <p>Sign in to manage the site.</p>
         <form method="POST">
-          <input type="hidden" name="csrf" value="<?= e(token()) ?>" />
-          <div class="tablenav">
-            <div class="actions">
-              <select name="bulk_action" aria-label="Bulk action">
-                <option value="">Bulk actions</option>
-                <option value="read">Mark as read</option>
-                <option value="unread">Mark as unread</option>
-                <option value="delete">Delete</option>
-              </select>
-              <button class="button" type="submit" name="do_bulk" value="1">Apply</button>
-              <?php if ($unread): ?>
-                <button class="button" type="submit" name="do_read_all" value="1">Mark all read</button>
-              <?php endif; ?>
-            </div>
-            <span class="count"><?= count($list) ?> item<?= count($list) === 1 ? '' : 's' ?></span>
-          </div>
-
-          <table class="wp-list-table">
-            <thead>
-              <tr>
-                <td class="check-column"><input type="checkbox" onclick="document.querySelectorAll('.cb').forEach(c=>c.checked=this.checked)" aria-label="Select all" /></td>
-                <th class="col-from">From</th>
-                <th class="col-msg">Message</th>
-                <th class="col-type">Type</th>
-                <th class="col-when">Received</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if (empty($list)): ?>
-                <tr class="empty-row"><td colspan="5"><?= $q !== '' ? 'No messages match your search.' : 'No messages yet. Submissions from the contact form will appear here.' ?></td></tr>
-              <?php else: foreach ($list as $m): $id = (string)($m['id'] ?? ''); $isUnread = empty($m['read']); ?>
-                <tr class="<?= $isUnread ? 'row-unread' : '' ?>">
-                  <td class="check-column"><input class="cb" type="checkbox" name="ids[]" value="<?= e($id) ?>" aria-label="Select message" /></td>
-                  <td class="col-from">
-                    <span class="from-name"><?= e($m['name'] ?? '—') ?></span>
-                    <a class="from-email" href="mailto:<?= e($m['email'] ?? '') ?>"><?= e($m['email'] ?? '') ?></a>
-                    <?php if (!empty($m['company'])): ?><span class="from-email"><?= e($m['company']) ?></span><?php endif; ?>
-                    <div class="row-actions">
-                      <span><button class="button-link" type="submit" name="do_toggle" value="<?= e($id) ?>"><?= $isUnread ? 'Mark read' : 'Mark unread' ?></button></span>
-                      <span class="sep">|</span>
-                      <span><a href="mailto:<?= e($m['email'] ?? '') ?>?subject=Re:%20your%20enquiry%20to%20Troiana">Reply</a></span>
-                      <span class="sep">|</span>
-                      <span><button class="button-link delete" type="submit" name="do_delete" value="<?= e($id) ?>" onclick="return confirm('Delete this message permanently?')">Delete</button></span>
-                    </div>
-                  </td>
-                  <td class="col-msg"><span class="msg-excerpt"><?= e(excerpt($m['message'] ?? '')) ?></span></td>
-                  <td class="col-type"><?php if (!empty($m['project_type'])): ?><span class="badge"><?= e($m['project_type']) ?></span><?php endif; ?></td>
-                  <td class="col-when when-muted"><?= e(date('M j, Y', strtotime($m['time'] ?? 'now'))) ?><br><?= e(date('H:i', strtotime($m['time'] ?? 'now'))) ?></td>
-                </tr>
-              <?php endforeach; endif; ?>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td class="check-column"><input type="checkbox" onclick="document.querySelectorAll('.cb').forEach(c=>c.checked=this.checked)" aria-label="Select all" /></td>
-                <th class="col-from">From</th>
-                <th class="col-msg">Message</th>
-                <th class="col-type">Type</th>
-                <th class="col-when">Received</th>
-              </tr>
-            </tfoot>
-          </table>
+          <input type="password" name="password" placeholder="Password" autofocus required />
+          <button class="btn primary" type="submit">Sign in →</button>
+          <?php if ($loginError): ?><div class="err"><?= e($loginError) ?></div><?php endif; ?>
         </form>
       <?php endif; ?>
     </div>
   </div>
+<?php else: ?>
+  <header>
+    <div class="wrap bar">
+      <div class="brand"><img src="../logo.svg" alt="Troiana" /></div>
+      <nav class="navtabs">
+        <a class="<?= $section==='dashboard'?'on':'' ?>" href="?s=dashboard">Dashboard</a>
+        <a class="<?= $section==='messages'?'on':'' ?>" href="?s=messages">Messages<?php if($unread):?><span class="cnt"><?= (int)$unread ?></span><?php endif;?></a>
+        <a class="<?= $section==='projects'?'on':'' ?>" href="?s=projects">Projects</a>
+        <a class="<?= $section==='services'?'on':'' ?>" href="?s=services">Services</a>
+        <a class="<?= $section==='content'?'on':'' ?>" href="?s=content">Site Content</a>
+      </nav>
+      <div class="right">
+        <a class="btn sm" href="../index.html" target="_blank">View site ↗</a>
+        <a class="btn sm" href="?logout">Log out</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <?php if ($notice !== ''): ?><div class="notice"><?= e($notice) ?></div><?php endif; ?>
+    <?php if ($warn !== ''): ?><div class="notice warn"><b>Heads up:</b> <?= e($warn) ?></div><?php endif; ?>
+
+    <?php if ($section === 'dashboard'): ?>
+      <h1 class="page">Dashboard</h1>
+      <p class="sub">Overview of your visitors and messages.</p>
+      <div class="cards">
+        <div class="stat"><div class="n"><?= number_format($stats['visitors']) ?></div><div class="l">Unique visitors</div></div>
+        <div class="stat accent"><div class="n"><?= number_format($stats['visitors_today']) ?></div><div class="l">Visitors today</div></div>
+        <div class="stat"><div class="n"><?= number_format($stats['total']) ?></div><div class="l">Total page views</div></div>
+        <div class="stat"><div class="n"><?= number_format($stats['today']) ?></div><div class="l">Page views today</div></div>
+      </div>
+      <div class="panel">
+        <h2>Page views — last 14 days</h2>
+        <?php $max = max(1, max($stats['series'] ?: [0])); $todayKey = date('Y-m-d'); ?>
+        <div class="chart">
+          <?php foreach ($stats['series'] as $day => $val): ?>
+            <div class="b <?= $day===$todayKey?'today':'' ?>" style="height:<?= (int)round($val / $max * 100) ?>%" title="<?= e($day) ?>: <?= (int)$val ?>"><span><?= e(date('j', strtotime($day))) ?></span></div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <div class="cards" style="grid-template-columns:1fr 1fr">
+        <div class="stat"><div class="n"><?= count($content['projects']) ?></div><div class="l">Portfolio projects</div></div>
+        <div class="stat"><div class="n"><?= (int)$unread ?> / <?= count($allMsgs) ?></div><div class="l">Unread / total messages</div></div>
+      </div>
+
+    <?php elseif ($section === 'messages'): ?>
+      <h1 class="page">Messages</h1>
+      <p class="sub"><?= count($allMsgs) ?> total · <?= (int)$unread ?> unread</p>
+      <form method="GET" class="toolbar">
+        <input type="hidden" name="s" value="messages" />
+        <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search name, email, text…" style="max-width:280px" />
+        <button class="btn" type="submit">Search</button>
+        <?php if ($q!==''): ?><a class="btn" href="?s=messages">Clear</a><?php endif; ?>
+        <?php if ($unread): ?>
+          <form class="inline right" method="POST"><input type="hidden" name="csrf" value="<?= e(token()) ?>" /><input type="hidden" name="act" value="msg_readall" /><button class="btn" type="submit">Mark all read</button></form>
+        <?php endif; ?>
+      </form>
+      <?php if (empty($msgList)): ?>
+        <div class="empty"><?= $q!=='' ? 'No messages match your search.' : 'No messages yet. Contact-form submissions will appear here.' ?></div>
+      <?php else: ?>
+      <form method="POST">
+        <input type="hidden" name="csrf" value="<?= e(token()) ?>" />
+        <input type="hidden" name="act" value="msg_bulk" />
+        <div class="toolbar">
+          <select name="bulk_action" style="max-width:170px"><option value="">Bulk actions</option><option value="read">Mark read</option><option value="unread">Mark unread</option><option value="delete">Delete</option></select>
+          <button class="btn" type="submit">Apply</button>
+        </div>
+        <table>
+          <thead><tr><th style="width:26px"></th><th>From</th><th>Message</th><th style="width:130px">Received</th></tr></thead>
+          <tbody>
+            <?php foreach ($msgList as $m): $id=(string)($m['id']??''); $u=empty($m['read']); ?>
+            <tr>
+              <td><input type="checkbox" name="ids[]" value="<?= e($id) ?>" style="width:auto" /></td>
+              <td>
+                <div><?php if($u):?><span class="dot"></span><?php endif;?><b><?= e($m['name']??'—') ?></b></div>
+                <a class="muted" href="mailto:<?= e($m['email']??'') ?>" style="font-size:13px"><?= e($m['email']??'') ?></a>
+                <?php if(!empty($m['company'])):?><div class="pill"><?= e($m['company']) ?></div><?php endif;?>
+                <?php if(!empty($m['project_type'])):?><div class="pill"><?= e($m['project_type']) ?></div><?php endif;?>
+              </td>
+              <td style="white-space:pre-wrap;color:#dcdce0"><?= e($m['message']??'') ?>
+                <div class="row-actions">
+                  <button class="btn-link" form="rowform_<?= e($id) ?>" name="act" value="msg_toggle"><?= $u?'Mark read':'Mark unread' ?></button>
+                  <a class="btn-link" href="mailto:<?= e($m['email']??'') ?>?subject=Re:%20your%20enquiry%20to%20Troiana" style="color:var(--muted)">Reply</a>
+                  <button class="btn-link del" form="rowform_<?= e($id) ?>" name="act" value="msg_delete" onclick="return confirm('Delete this message?')">Delete</button>
+                </div>
+              </td>
+              <td class="muted" style="font-size:12.5px"><?= e(date('M j, Y', strtotime($m['time']??'now'))) ?><br><?= e(date('H:i', strtotime($m['time']??'now'))) ?></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </form>
+      <?php foreach ($msgList as $m): $id=(string)($m['id']??''); ?>
+        <form id="rowform_<?= e($id) ?>" method="POST" style="display:none"><input type="hidden" name="csrf" value="<?= e(token()) ?>" /><input type="hidden" name="id" value="<?= e($id) ?>" /></form>
+      <?php endforeach; ?>
+      <?php endif; ?>
+
+    <?php elseif ($section === 'projects'): ?>
+      <?php if ($editing !== null): ?>
+        <h1 class="page"><?= $editIdx==='new'?'Add project':'Edit project' ?></h1>
+        <p class="sub"><a href="?s=projects">← Back to projects</a></p>
+        <form method="POST" class="panel">
+          <input type="hidden" name="csrf" value="<?= e(token()) ?>" />
+          <input type="hidden" name="act" value="save_project" />
+          <input type="hidden" name="idx" value="<?= e($editIdx) ?>" />
+          <div class="two">
+            <label class="fld"><span class="lab">Title</span><input type="text" name="title" value="<?= e($editing['title']) ?>" required /></label>
+            <label class="fld"><span class="lab">Tag line (e.g. “Full-stack · Web app”)</span><input type="text" name="tag" value="<?= e($editing['tag']) ?>" /></label>
+          </div>
+          <label class="fld"><span class="lab">Description</span><textarea name="desc"><?= e($editing['desc']) ?></textarea></label>
+          <div class="two">
+            <label class="fld"><span class="lab">Image URL / path</span><input type="text" name="img" value="<?= e($editing['img']) ?>" /><span class="hint">Local (e.g. images/foo/home.jpg) or a screenshot URL.</span></label>
+            <label class="fld"><span class="lab">Link (href)</span><input type="text" name="href" value="<?= e($editing['href']) ?>" /></label>
+          </div>
+          <div class="two">
+            <label class="fld"><span class="lab">Call-to-action label</span><input type="text" name="cta" value="<?= e($editing['cta']) ?>" /></label>
+            <label class="fld"><span class="lab">External link</span><span class="chk"><input type="checkbox" name="external" value="1" <?= !empty($editing['external'])?'checked':'' ?> /> Opens in a new tab (offsite)</span></label>
+          </div>
+          <label class="fld"><span class="lab">Categories (filter tabs)</span>
+            <div class="checks">
+              <?php foreach (categories() as $k=>$label): ?>
+                <label><input type="checkbox" name="cats[]" value="<?= e($k) ?>" <?= in_array($k,(array)$editing['cats'],true)?'checked':'' ?> /> <?= e($label) ?></label>
+              <?php endforeach; ?>
+            </div>
+          </label>
+          <button class="btn primary" type="submit">Save & publish</button>
+        </form>
+      <?php else: ?>
+        <div class="toolbar"><h1 class="page" style="margin:0">Projects</h1><div class="right"><a class="btn primary" href="?s=projects&edit=new">+ Add project</a></div></div>
+        <p class="sub">These render on the home page and portfolio page. Edits publish instantly.</p>
+        <?php if (empty($content['projects'])): ?>
+          <div class="empty">No projects yet. <a href="?s=projects&edit=new">Add your first →</a></div>
+        <?php else: ?>
+        <table>
+          <thead><tr><th style="width:78px"></th><th>Project</th><th>Categories</th><th style="width:120px">Order</th></tr></thead>
+          <tbody>
+            <?php foreach ($content['projects'] as $i=>$p): ?>
+            <tr>
+              <td><img class="thumb-sm" src="<?= e($p['img']??'') ?>" alt="" loading="lazy" /></td>
+              <td>
+                <b><?= e($p['title']??'') ?></b> <span class="muted" style="font-size:12px"><?= e($p['tag']??'') ?></span>
+                <div class="muted" style="font-size:13px;margin-top:3px"><?= e(excerpt($p['desc']??'',90)) ?></div>
+                <div class="row-actions">
+                  <a class="btn-link" href="?s=projects&edit=<?= $i ?>">Edit</a>
+                  <button class="btn-link del" form="delp_<?= $i ?>" onclick="return confirm('Delete “<?= e(addslashes($p['title']??'')) ?>”?')">Delete</button>
+                </div>
+              </td>
+              <td><?php foreach((array)($p['cats']??[]) as $c):?><span class="pill"><?= e(categories()[$c]??$c) ?></span><?php endforeach;?></td>
+              <td>
+                <form class="inline" method="POST"><input type="hidden" name="csrf" value="<?= e(token()) ?>"/><input type="hidden" name="act" value="move_project"/><input type="hidden" name="idx" value="<?= $i ?>"/><input type="hidden" name="dir" value="up"/><button class="btn sm" <?= $i===0?'disabled':'' ?>>↑</button></form>
+                <form class="inline" method="POST"><input type="hidden" name="csrf" value="<?= e(token()) ?>"/><input type="hidden" name="act" value="move_project"/><input type="hidden" name="idx" value="<?= $i ?>"/><input type="hidden" name="dir" value="down"/><button class="btn sm" <?= $i===count($content['projects'])-1?'disabled':'' ?>>↓</button></form>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        <?php foreach ($content['projects'] as $i=>$p): ?>
+          <form id="delp_<?= $i ?>" method="POST" style="display:none"><input type="hidden" name="csrf" value="<?= e(token()) ?>"/><input type="hidden" name="act" value="del_project"/><input type="hidden" name="idx" value="<?= $i ?>"/></form>
+        <?php endforeach; ?>
+        <?php endif; ?>
+      <?php endif; ?>
+
+    <?php elseif ($section === 'services'): ?>
+      <?php if ($editSvc !== null): ?>
+        <h1 class="page"><?= $editIdx==='new'?'Add service':'Edit service' ?></h1>
+        <p class="sub"><a href="?s=services">← Back to services</a></p>
+        <form method="POST" class="panel">
+          <input type="hidden" name="csrf" value="<?= e(token()) ?>" />
+          <input type="hidden" name="act" value="save_service" />
+          <input type="hidden" name="idx" value="<?= e($editIdx) ?>" />
+          <label class="fld"><span class="lab">Icon</span>
+            <div class="icochoice">
+              <?php foreach (icons() as $k=>$svg): ?>
+                <label><input type="radio" name="icon" value="<?= e($k) ?>" <?= ($editSvc['icon']??'')===$k?'checked':'' ?> /><span class="ic"><?= $svg ?></span></label>
+              <?php endforeach; ?>
+            </div>
+          </label>
+          <label class="fld"><span class="lab">Title</span><input type="text" name="title" value="<?= e($editSvc['title']) ?>" required /></label>
+          <label class="fld"><span class="lab">Description</span><textarea name="desc"><?= e($editSvc['desc']) ?></textarea></label>
+          <label class="fld"><span class="lab">Bullet points (one per line — shown on the Services page)</span><textarea name="bullets" style="min-height:96px"><?= e(implode("\n",(array)($editSvc['bullets']??[]))) ?></textarea></label>
+          <button class="btn primary" type="submit">Save & publish</button>
+        </form>
+      <?php else: ?>
+        <div class="toolbar"><h1 class="page" style="margin:0">Services</h1><div class="right"><a class="btn primary" href="?s=services&edit=new">+ Add service</a></div></div>
+        <p class="sub">Shown on the home page and the Services page.</p>
+        <?php if (empty($content['services'])): ?>
+          <div class="empty">No services yet. <a href="?s=services&edit=new">Add one →</a></div>
+        <?php else: ?>
+        <table>
+          <thead><tr><th style="width:50px"></th><th>Service</th><th style="width:120px">Order</th></tr></thead>
+          <tbody>
+            <?php foreach ($content['services'] as $i=>$s): ?>
+            <tr>
+              <td><span class="icochoice" style="pointer-events:none"><span class="ic" style="width:40px;height:40px"><?= icon_svg($s['icon']??'monitor') ?></span></span></td>
+              <td>
+                <b><?= e($s['title']??'') ?></b>
+                <div class="muted" style="font-size:13px;margin-top:3px"><?= e($s['desc']??'') ?></div>
+                <div class="row-actions">
+                  <a class="btn-link" href="?s=services&edit=<?= $i ?>">Edit</a>
+                  <button class="btn-link del" form="dels_<?= $i ?>" onclick="return confirm('Delete this service?')">Delete</button>
+                </div>
+              </td>
+              <td>
+                <form class="inline" method="POST"><input type="hidden" name="csrf" value="<?= e(token()) ?>"/><input type="hidden" name="act" value="move_service"/><input type="hidden" name="idx" value="<?= $i ?>"/><input type="hidden" name="dir" value="up"/><button class="btn sm" <?= $i===0?'disabled':'' ?>>↑</button></form>
+                <form class="inline" method="POST"><input type="hidden" name="csrf" value="<?= e(token()) ?>"/><input type="hidden" name="act" value="move_service"/><input type="hidden" name="idx" value="<?= $i ?>"/><input type="hidden" name="dir" value="down"/><button class="btn sm" <?= $i===count($content['services'])-1?'disabled':'' ?>>↓</button></form>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        <?php foreach ($content['services'] as $i=>$s): ?>
+          <form id="dels_<?= $i ?>" method="POST" style="display:none"><input type="hidden" name="csrf" value="<?= e(token()) ?>"/><input type="hidden" name="act" value="del_service"/><input type="hidden" name="idx" value="<?= $i ?>"/></form>
+        <?php endforeach; ?>
+        <?php endif; ?>
+      <?php endif; ?>
+
+    <?php elseif ($section === 'content'): ?>
+      <h1 class="page">Site Content</h1>
+      <p class="sub">Edit the hero, metrics and contact email. Saving republishes the pages.</p>
+      <form method="POST" class="panel">
+        <input type="hidden" name="csrf" value="<?= e(token()) ?>" />
+        <input type="hidden" name="act" value="save_content" />
+        <label class="fld"><span class="lab">Hero heading (each line becomes a new line on the page)</span><textarea name="hero_title" style="min-height:70px"><?= e($content['hero']['title']??'') ?></textarea></label>
+        <label class="fld"><span class="lab">Hero sub-text</span><textarea name="hero_sub"><?= e($content['hero']['sub']??'') ?></textarea></label>
+        <div class="fld"><span class="lab">Metrics (shown under the hero)</span>
+          <?php $ms = $content['metrics']; $ms[] = ['n'=>'','l'=>'']; foreach ($ms as $mrow): ?>
+            <div class="metric-row"><input type="text" name="metric_n[]" value="<?= e($mrow['n']??'') ?>" placeholder="50+" /><input type="text" name="metric_l[]" value="<?= e($mrow['l']??'') ?>" placeholder="Projects shipped" /></div>
+          <?php endforeach; ?>
+          <span class="hint">Leave a row blank to remove it. The last empty row lets you add another.</span>
+        </div>
+        <label class="fld" style="max-width:360px"><span class="lab">Contact email</span><input type="email" name="contact_email" value="<?= e($content['contact']['email']??'') ?>" /></label>
+        <button class="btn primary" type="submit">Save & publish</button>
+      </form>
+    <?php endif; ?>
+  </main>
+  <footer>
+    Troiana admin · content saved to <code>data/</code> on your server.
+    <form class="inline" method="POST" style="margin-left:8px"><input type="hidden" name="csrf" value="<?= e(token()) ?>"/><input type="hidden" name="act" value="republish"/><button class="btn-link" type="submit">Re-publish site</button></form>
+  </footer>
 <?php endif; ?>
 
 </body>

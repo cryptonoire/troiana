@@ -1,0 +1,37 @@
+{
+  "hero": {
+    "title": "We build the web\nyour business deserves.",
+    "sub": "Troiana is a web development agency crafting fast, beautiful, conversion-focused websites and web applications — designed and engineered end to end."
+  },
+  "metrics": [
+    { "n": "50+", "l": "Projects shipped" },
+    { "n": "100ms", "l": "Avg. load target" },
+    { "n": "100%", "l": "Custom-built" }
+  ],
+  "contact": { "email": "hello@troiana.net" },
+  "services": [
+    { "icon": "monitor", "title": "Website Design & Build", "desc": "Marketing sites, landing pages and brand sites that load instantly and convert.", "bullets": ["Custom design", "Responsive & mobile-first", "WordPress or hand-coded"] },
+    { "icon": "gear", "title": "Web Applications", "desc": "Dashboards, portals and SaaS products on modern, scalable stacks.", "bullets": ["Custom architecture", "Auth, data & APIs", "Real-time features"] },
+    { "icon": "cart", "title": "E-Commerce", "desc": "Storefronts and checkout flows engineered to maximise revenue.", "bullets": ["Product catalogues", "Payments & checkout", "Order management"] },
+    { "icon": "smiley", "title": "UI / UX Design", "desc": "Interfaces that feel effortless — research-led design systems.", "bullets": ["Wireframes & prototypes", "Design systems", "Brand & identity"] },
+    { "icon": "bolt", "title": "Performance & SEO", "desc": "Core Web Vitals, technical SEO and rock-solid hosting so you rank and stay fast.", "bullets": ["Speed optimisation", "Technical SEO", "Analytics setup"] },
+    { "icon": "wrench", "title": "Maintenance & Support", "desc": "Ongoing care, updates and feature work — your long-term tech partner.", "bullets": ["Updates & backups", "Security & monitoring", "New features on request"] },
+    { "icon": "shield", "title": "Web3 & On-Chain", "desc": "Wallet-based apps, on-chain analytics and crypto community platforms.", "bullets": ["Solana & wallet login", "On-chain data & analytics", "Token & community tools"] }
+  ],
+  "projects": [
+    { "title": "Zolea", "tag": "Full-stack · Web app · Web3", "desc": "A community platform with live coin cards, real-time chat, voice and in-app Solana trading.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://zolea.fun", "href": "zolea.html", "external": false, "cta": "View case study →", "cats": ["webdev", "webapp", "web3"] },
+    { "title": "web.zolea.fun", "tag": "Full-stack · Web3", "desc": "The Zolea web app — Discord-style crypto communities with real-time chat, voice, presence and wallet-based login.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://web.zolea.fun", "href": "https://web.zolea.fun", "external": true, "cta": "Visit site →", "cats": ["webdev", "webapp"] },
+    { "title": "apps.zolea.fun", "tag": "Full-stack · Web3", "desc": "The Zolea on-chain toolkit — a hub of standalone Solana apps for token security, holder analysis and wallet checks.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun", "href": "https://apps.zolea.fun", "external": true, "cta": "Visit site →", "cats": ["webdev", "webapp"] },
+    { "title": "Pump.fun Rug Checker", "tag": "Web3 · On-chain tool", "desc": "Paste a wallet and see every pump.fun coin it launched — dead vs graduated, with a 0–100 rug-rate reputation score.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/rugger", "href": "https://apps.zolea.fun/rugger", "external": true, "cta": "Visit app →", "cats": ["web3"] },
+    { "title": "Security Scanner", "tag": "Web3 · On-chain tool", "desc": "Mint & freeze authority, holder concentration, liquidity and age distilled into an instant 0–100 security score.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/security", "href": "https://apps.zolea.fun/security", "external": true, "cta": "Visit app →", "cats": ["web3"] },
+    { "title": "Holder Analysis", "tag": "Web3 · On-chain tool", "desc": "Top 10/25/50 holders, concentration roll-ups, whale dominance and distribution charts — straight from the chain.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/holders", "href": "https://apps.zolea.fun/holders", "external": true, "cta": "Visit app →", "cats": ["web3"] },
+    { "title": "Wallet Checker", "tag": "Web3 · On-chain tool", "desc": "Inspect any Solana wallet — SOL & token balances, wallet age, transaction count and recent activity with an allocation chart.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/wallet", "href": "https://apps.zolea.fun/wallet", "external": true, "cta": "Visit app →", "cats": ["web3"] },
+    { "title": "Bubble Map", "tag": "Web3 · On-chain tool", "desc": "An interactive graph of the creator, top holders and connected wallets — with transfer tracing and cluster highlighting.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/bubble-map", "href": "https://apps.zolea.fun/bubble-map", "external": true, "cta": "Visit app →", "cats": ["web3"] },
+    { "title": "Developer Tracker", "tag": "Web3 · On-chain tool", "desc": "Track a token's creator — current holdings, transfers and sells, a developer risk score and a full activity timeline.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/developer", "href": "https://apps.zolea.fun/developer", "external": true, "cta": "Visit app →", "cats": ["web3"] },
+    { "title": "PrintHouse", "tag": "Marketing · E-commerce", "desc": "Printing, signage and promotional company site with an online product catalogue.", "img": "https://image.thum.io/get/width/720/crop/450/noanimate/https://print-house.net", "href": "printhouse.html", "external": false, "cta": "View case study →", "cats": ["webdev", "ecommerce"] },
+    { "title": "Elshani Garten", "tag": "Landscaping · WordPress", "desc": "Garden & landscape construction in Gilching — terraces, paving, decks and outdoor design.", "img": "images/elshani/home.jpg", "href": "elshani.html", "external": false, "cta": "View case study →", "cats": ["wordpress"] },
+    { "title": "Gashi Garten & Tiefbau", "tag": "Landscaping · WordPress", "desc": "A reliable partner for garden and outdoor works — GaLaBau, maintenance and groundworks.", "img": "images/gashi/home.jpg", "href": "gashi.html", "external": false, "cta": "View case study →", "cats": ["wordpress"] },
+    { "title": "Catering Prishtina", "tag": "Hospitality · WordPress", "desc": "An elegant catering & events brand in Prishtina — menus, occasions and online enquiries.", "img": "images/catering/home.jpg", "href": "catering.html", "external": false, "cta": "View case study →", "cats": ["wordpress"] },
+    { "title": "SHSRK", "tag": "Association · WordPress", "desc": "The Dental Association of Kosovo — institutional site with congress & abstract submissions.", "img": "images/shsrk/home.jpg", "href": "shsrk.html", "external": false, "cta": "View case study →", "cats": ["wordpress"] }
+  ]
+}

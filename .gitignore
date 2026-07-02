@@ -5,4 +5,8 @@ node_modules/
 
 # Admin secrets & stored data (never commit)
 config.php
-data/
+# Private runtime data, but ship the CMS content source.
+data/*
+!data/content.json
+# Backups written by the admin publisher
+*.bak
