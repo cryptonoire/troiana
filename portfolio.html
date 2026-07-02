@@ -36,17 +36,97 @@
   </section>
 
   <section class="wrap">
-    <div class="work-grid">
-      <a class="proj reveal" href="zolea.html">
+    <div class="tabs reveal" id="workTabs">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="webdev">Web Development</button>
+      <button class="tab" data-filter="webapp">Web App Development</button>
+      <button class="tab" data-filter="wordpress">WordPress Web</button>
+      <button class="tab" data-filter="ecommerce">E-Commerce</button>
+      <button class="tab" data-filter="web3">Web3</button>
+    </div>
+    <div class="work-grid" id="workGrid">
+      <a class="proj reveal" data-cat="webdev webapp web3" href="zolea.html">
         <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://zolea.fun" alt="Zolea" /></div>
         <div class="body">
-          <span class="tag">Full-stack · Web app</span>
+          <span class="tag">Full-stack · Web app · Web3</span>
           <h3>Zolea <span class="arrow">↗</span></h3>
           <p>A community platform with live coin cards, real-time chat, voice and in-app Solana trading.</p>
           <div class="url">View case study →</div>
         </div>
       </a>
-      <a class="proj reveal" href="printhouse.html">
+      <a class="proj reveal" data-cat="webdev webapp" href="https://web.zolea.fun" target="_blank" rel="noopener">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://web.zolea.fun" alt="web.zolea.fun" /></div>
+        <div class="body">
+          <span class="tag">Full-stack · Web3</span>
+          <h3>web.zolea.fun <span class="arrow">↗</span></h3>
+          <p>The Zolea web app — Discord-style crypto communities with real-time chat, voice, presence and wallet-based login.</p>
+          <div class="url">Visit site →</div>
+        </div>
+      </a>
+      <a class="proj reveal" data-cat="webdev webapp" href="https://apps.zolea.fun" target="_blank" rel="noopener">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun" alt="apps.zolea.fun" /></div>
+        <div class="body">
+          <span class="tag">Full-stack · Web3</span>
+          <h3>apps.zolea.fun <span class="arrow">↗</span></h3>
+          <p>The Zolea on-chain toolkit — a hub of standalone Solana apps for token security, holder analysis and wallet checks.</p>
+          <div class="url">Visit site →</div>
+        </div>
+      </a>
+      <a class="proj reveal" data-cat="web3" href="https://apps.zolea.fun/rugger" target="_blank" rel="noopener">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/rugger" alt="Pump.fun Rug Checker" /></div>
+        <div class="body">
+          <span class="tag">Web3 · On-chain tool</span>
+          <h3>Pump.fun Rug Checker <span class="arrow">↗</span></h3>
+          <p>Paste a wallet and see every pump.fun coin it launched — dead vs graduated, with a 0–100 rug-rate reputation score.</p>
+          <div class="url">Visit app →</div>
+        </div>
+      </a>
+      <a class="proj reveal" data-cat="web3" href="https://apps.zolea.fun/security" target="_blank" rel="noopener">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/security" alt="Security Scanner" /></div>
+        <div class="body">
+          <span class="tag">Web3 · On-chain tool</span>
+          <h3>Security Scanner <span class="arrow">↗</span></h3>
+          <p>Mint &amp; freeze authority, holder concentration, liquidity and age distilled into an instant 0–100 security score.</p>
+          <div class="url">Visit app →</div>
+        </div>
+      </a>
+      <a class="proj reveal" data-cat="web3" href="https://apps.zolea.fun/holders" target="_blank" rel="noopener">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/holders" alt="Holder Analysis" /></div>
+        <div class="body">
+          <span class="tag">Web3 · On-chain tool</span>
+          <h3>Holder Analysis <span class="arrow">↗</span></h3>
+          <p>Top 10/25/50 holders, concentration roll-ups, whale dominance and distribution charts — straight from the chain.</p>
+          <div class="url">Visit app →</div>
+        </div>
+      </a>
+      <a class="proj reveal" data-cat="web3" href="https://apps.zolea.fun/wallet" target="_blank" rel="noopener">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/wallet" alt="Wallet Checker" /></div>
+        <div class="body">
+          <span class="tag">Web3 · On-chain tool</span>
+          <h3>Wallet Checker <span class="arrow">↗</span></h3>
+          <p>Inspect any Solana wallet — SOL &amp; token balances, wallet age, transaction count and recent activity with an allocation chart.</p>
+          <div class="url">Visit app →</div>
+        </div>
+      </a>
+      <a class="proj reveal" data-cat="web3" href="https://apps.zolea.fun/bubble-map" target="_blank" rel="noopener">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/bubble-map" alt="Bubble Map" /></div>
+        <div class="body">
+          <span class="tag">Web3 · On-chain tool</span>
+          <h3>Bubble Map <span class="arrow">↗</span></h3>
+          <p>An interactive graph of the creator, top holders and connected wallets — with transfer tracing and cluster highlighting.</p>
+          <div class="url">Visit app →</div>
+        </div>
+      </a>
+      <a class="proj reveal" data-cat="web3" href="https://apps.zolea.fun/developer" target="_blank" rel="noopener">
+        <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://apps.zolea.fun/developer" alt="Developer Tracker" /></div>
+        <div class="body">
+          <span class="tag">Web3 · On-chain tool</span>
+          <h3>Developer Tracker <span class="arrow">↗</span></h3>
+          <p>Track a token's creator — current holdings, transfers and sells, a developer risk score and a full activity timeline.</p>
+          <div class="url">Visit app →</div>
+        </div>
+      </a>
+      <a class="proj reveal" data-cat="webdev ecommerce" href="printhouse.html">
         <div class="thumb"><img loading="lazy" src="https://image.thum.io/get/width/720/crop/450/noanimate/https://print-house.net" alt="PrintHouse" /></div>
         <div class="body">
           <span class="tag">Marketing · E-commerce</span>
@@ -55,7 +135,7 @@
           <div class="url">View case study →</div>
         </div>
       </a>
-      <a class="proj reveal" href="elshani.html">
+      <a class="proj reveal" data-cat="wordpress" href="elshani.html">
         <div class="thumb"><img loading="lazy" src="images/elshani/home.jpg" alt="Elshani Garten" /></div>
         <div class="body">
           <span class="tag">Landscaping · WordPress</span>
@@ -64,7 +144,7 @@
           <div class="url">View case study →</div>
         </div>
       </a>
-      <a class="proj reveal" href="gashi.html">
+      <a class="proj reveal" data-cat="wordpress" href="gashi.html">
         <div class="thumb"><img loading="lazy" src="images/gashi/home.jpg" alt="Gashi Garten und Tiefbau" /></div>
         <div class="body">
           <span class="tag">Landscaping · WordPress</span>
@@ -73,7 +153,7 @@
           <div class="url">View case study →</div>
         </div>
       </a>
-      <a class="proj reveal" href="catering.html">
+      <a class="proj reveal" data-cat="wordpress" href="catering.html">
         <div class="thumb"><img loading="lazy" src="images/catering/home.jpg" alt="Catering Prishtina" /></div>
         <div class="body">
           <span class="tag">Hospitality · WordPress</span>
@@ -82,7 +162,7 @@
           <div class="url">View case study →</div>
         </div>
       </a>
-      <a class="proj reveal" href="shsrk.html">
+      <a class="proj reveal" data-cat="wordpress" href="shsrk.html">
         <div class="thumb"><img loading="lazy" src="images/shsrk/home.jpg" alt="Shoqata e Stomatologëve të Kosovës" /></div>
         <div class="body">
           <span class="tag">Association · WordPress</span>
@@ -118,6 +198,18 @@
   document.getElementById('yr').textContent=new Date().getFullYear();
   const io=new IntersectionObserver((e)=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.12});
   document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3)*60+'ms';io.observe(el)});
+
+  const tabs=document.querySelectorAll('#workTabs .tab');
+  const projs=document.querySelectorAll('#workGrid .proj');
+  tabs.forEach(tab=>tab.addEventListener('click',()=>{
+    tabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const f=tab.dataset.filter;
+    projs.forEach(p=>{
+      const show=f==='all'||p.dataset.cat.split(' ').includes(f);
+      p.classList.toggle('hide',!show);
+    });
+  }));
 </script>
 </body>
 </html>

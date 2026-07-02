@@ -141,6 +141,15 @@ footer{border-top:1px solid var(--line);margin-top:80px;padding:40px 0}
 .svc li{color:var(--muted);font-size:.9rem;padding-left:18px;position:relative;margin-top:7px}
 .svc li::before{content:"›";position:absolute;left:0;color:var(--fg)}
 
+/* portfolio filter tabs */
+.tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:36px auto 0;max-width:760px}
+.tab{font-size:14px;font-weight:600;color:var(--muted);border:1px solid var(--line);
+  background:var(--bg-elev);padding:9px 18px;border-radius:999px;cursor:pointer;
+  transition:color .2s,border-color .2s,background .2s}
+.tab:hover{color:var(--fg);border-color:var(--line-strong)}
+.tab.active{color:#000;background:var(--accent);border-color:var(--accent)}
+.proj.hide{display:none}
+
 /* portfolio cards */
 .work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:40px}
 @media(max-width:900px){.work-grid{grid-template-columns:1fr 1fr}}
